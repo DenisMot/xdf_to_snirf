@@ -1,3 +1,6 @@
 {
-    "julia.environmentPath": "~/Documents/GitHub/NeuArm-DataAnalysis"
+    "julia.environmentPath": "~/Documents/GitHub/NeuArm-DataAnalysis",
+    "cSpell.words": [
+        "snirf"
+    ]
 }
