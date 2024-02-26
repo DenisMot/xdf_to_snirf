@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pyxdf
 import os
 import datetime
@@ -173,68 +172,9 @@ def make_xdf_time_relative_to_first_data(nirsStream, eventStream):
     eventStream["time_stamps"] = event_time
 
 
-# Montage for the OXY4
-dig_points_ReArm_NeuArm = {
-    "nz": [0.400, 85.900, -47.600],
-    "a1": [83.900, -16.600, -56.700],
-    "a2": [-83.800, -18.600, -57.200],
-    "cz": [-0.461, -8.416, 101.365],
-    "iz": [0.200, -120.500, -25.800],
-    "S1": [15.122, 12.567, 92.751],
-    "S2": [55.348, 12.215, 69.807],
-    "S3": [58.686, -30.779, 80.338],
-    "S4": [18.350, -31.372, 101.863],
-    "S5": [-18.221, 14.421, 91.198],
-    "S6": [-57.118, 11.411, 68.420],
-    "S7": [-60.350, -33.460, 78.860],
-    "S8": [-19.193, -31.499, 101.587],
-    "D1": [38.717, -8.599, 90.282],
-    "D2": [-39.835, -9.543, 89.911],
-}
-
-# divide all the coordinates by 1000 to get them in m
-for key in dig_points_ReArm_NeuArm:
-    # standard unit are in m
-    dig_points_ReArm_NeuArm[key] = [x / 1000 for x in dig_points_ReArm_NeuArm[key]]
-    # standard head is smaller than the one that was recorded
-    # the 1.08 factor is to have the inter-SD distance of 0.03 m
-    dig_points_ReArm_NeuArm[key] = [x / 1.08 for x in dig_points_ReArm_NeuArm[key]]
-
-
-def distance(S1, D1):
-    S1 = np.array(S1[:])
-    D1 = np.array(D1[:])
-    distance = np.sqrt(np.sum((D1 - S1) ** 2))
-    return distance
-
-
-def check_source_detector_distance(dig_points_ReArm_NeuArm):
-    source_detector_distance = []
-    for k in ["S1", "S2", "S3", "S4"]:
-        D = dig_points_ReArm_NeuArm["D1"]
-        S = dig_points_ReArm_NeuArm[k]
-        source_detector_distance.append(distance(D, S))
-    for k in ["S5", "S6", "S7", "S8"]:
-        D = dig_points_ReArm_NeuArm["D2"]
-        S = dig_points_ReArm_NeuArm[k]
-        source_detector_distance.append(distance(D, S))
-
-    # create a figure with two subplots
-    plt.figure(figsize=(10, 5))
-    # first subplot on the left half : boxplot of the source-detector distance
-    ax = plt.subplot(1, 2, 1)
-    ax.boxplot(source_detector_distance)
-    ax.set_title("Source-Detector distance")
-    ax.set_ylabel("Distance (m)")
-    # second subplot with a scatter plot of the source-detector distance
-    ax = plt.subplot(1, 2, 2)
-    ax.scatter(range(len(source_detector_distance)), source_detector_distance)
-    ax.set_ylabel("Distance (m)")
-    plt.show()
-
-
 def set_dig_montage(channels):
-    # set the channel locations
+    """set the montage from the channel locations list"""
+
     montage = mne.channels.make_dig_montage(
         ch_pos=channels,
         nasion=channels["nz"],
@@ -247,7 +187,37 @@ def set_dig_montage(channels):
     return montage
 
 
+def set_rearm_dig_points():
+    # Montage for the OXY4
+    dig_points_ReArm_NeuArm = {
+        "nz": [0.400, 85.900, -47.600],
+        "a1": [83.900, -16.600, -56.700],
+        "a2": [-83.800, -18.600, -57.200],
+        "cz": [-0.461, -8.416, 101.365],
+        "iz": [0.200, -120.500, -25.800],
+        "S1": [15.122, 12.567, 92.751],
+        "S2": [55.348, 12.215, 69.807],
+        "S3": [58.686, -30.779, 80.338],
+        "S4": [18.350, -31.372, 101.863],
+        "S5": [-18.221, 14.421, 91.198],
+        "S6": [-57.118, 11.411, 68.420],
+        "S7": [-60.350, -33.460, 78.860],
+        "S8": [-19.193, -31.499, 101.587],
+        "D1": [38.717, -8.599, 90.282],
+        "D2": [-39.835, -9.543, 89.911],
+    }
+
+    # divide all the coordinates by 1000 to get them in m
+    for key in dig_points_ReArm_NeuArm:
+        # standard unit are in m
+        dig_points_ReArm_NeuArm[key] = [x / 1000 for x in dig_points_ReArm_NeuArm[key]]
+        # standard head is smaller than the one that was recorded
+        # the 1.08 factor is to have the inter-SD distance of 0.03 m
+        dig_points_ReArm_NeuArm[key] = [x / 1.08 for x in dig_points_ReArm_NeuArm[key]]
+    return dig_points_ReArm_NeuArm
+
 def set_rearm_dig_montage():
+    dig_points_ReArm_NeuArm = set_rearm_dig_points( )
     return set_dig_montage(dig_points_ReArm_NeuArm)
 
 
@@ -365,7 +335,7 @@ def create_snirf_in_results(xdf_fullFile, nirsStream, eventStream):
     return new_file_name
 
 
-def xdf2snirf(xdf_fullFile):
+def xdf_to_snirf(xdf_fullFile):
 
     # Suppress the INFO log messages
     import logging
@@ -403,7 +373,7 @@ if __name__ == "__main__":
         extension = ".xdf"
 
         print("cwd = ", os.getcwd())
-        print("directory = ", os.path.abspath(directory)    )
+        print("directory = ", os.path.abspath(directory))
 
         # get the files in the directory
         files = [f for f in os.listdir(directory) if f.endswith(extension)]
@@ -423,4 +393,4 @@ if __name__ == "__main__":
     # process all the xdf files
     for file in xdf_files:
         xdf_fullFile = os.path.abspath(os.path.join(os.getcwd(), file))
-        xdf2snirf(xdf_fullFile)
+        xdf_to_snirf(xdf_fullFile)
