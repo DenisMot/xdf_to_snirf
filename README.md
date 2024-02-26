@@ -22,6 +22,7 @@ The logic is to organize the data, code, and results in separate folders, all wi
        ├── data          # data used as input in the project  
        ├── results       # results of the conversion 
        ├── notebooks     # analyses with jupyter notebooks 
+       ├── src           # python source code (alternative to notebooks)
        └── main.ipynb    # entry point: to run all analyses
 
 ## Prerequisites
@@ -51,3 +52,13 @@ xdf_files = get_xdf_files_in_directory('/Users/denismot/my_data')
 xdf_files += get_xdf_files_in_directory('/Users/denismot/my_other_data')
 ```
 **NOTE:** The converted files will always be saved in the `results` folder. If the names of the xdf files from different directories are the same, the converted files will overwrite each other.
+
+## How it works 
+The conversion is done with the `xdf_to_snirf` function from the `xdf_to_snirf` module.  
+The `xdf_to_snirf` module is built from the latest version of the `xdf2snirf` notebook.  
+The `xdf2snirf` notebook includes tests (on reference data) that are not in the module.  
+The `xdf2snirf` notebook is a good place to start if you want to understand the conversion process.  
+
+### Limitations
+- The conversion is limited to the 8 NIRS channels of the ARTINIS Starstim8 device.  
+- The conversion includes the montage used in the NeuArm and ReARm projects (https://doi.org/10.1016/j.bbr.2023.114322). 
